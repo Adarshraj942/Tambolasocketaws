@@ -47,7 +47,14 @@ io.on("connection", (socket) => {
         console.log(roomId,type,fee);
       });
      })
-      
+      socket.on("leaveGame",(roomId,socketId)=>{
+        const roomData=  rooms.filter((o)=>  o.roomId===roomId)
+        const index = roomData.users.indexOf(socketId);
+        if (index > -1) { // only splice array when item is found
+          roomData.users.splice(index, 1); // 2nd parameter means remove one item only
+        }
+         io.to(socketId).emit("Left from game")
+      })
     socket.on("StartGame",(room,users,draw,type)=>{
       console.log("Game Started...",draw, users,room);
       console.log(rooms)
