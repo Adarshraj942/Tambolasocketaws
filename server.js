@@ -55,6 +55,16 @@ io.on("connection", (socket) => {
         }
          io.to(socketId).emit("Left from game")
       })
+       socket.on("UserJoinData",(roomId,usersArray,type,fee)=>{
+        activeUsers.forEach(element => {
+          io.to(element.socketId).emit("added-UserJoinData", roomId ,usersArray,type,fee)
+         
+        });
+       })
+
+     socket.on("userJoinInsideRoom",(roomId,usersArray)=>{
+      
+     })
     socket.on("StartGame",(room,users,draw,type)=>{
       console.log("Game Started...",draw, users,room);
       console.log(rooms)
