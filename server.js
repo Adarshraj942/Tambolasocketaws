@@ -12,20 +12,29 @@ io.on("connection", (socket) => {
   console.log("connected");
   //join room
   
-  socket.on("join",(room,users)=>{
-    console.log(room,users)
+  socket.on("join",(data)=>{
+    const {fee,room,socketId,type}=data
     if (!rooms.some((roomD) => roomD.roomId === room)) {
       console.log("user joined & It's new Room");
-      rooms.push({ roomId: room, socketId: socket.id , users:users});
+      const roomData={ roomId: room,  users:[socketId],type:type,fee:fee} 
+      rooms.push(roomData);
       console.log("New room Connected", rooms);
+      activeUsers.forEach(element => {
+        console.log(element.socketId);
+        io.to(element.socketId).emit("added-match-data", roomData)
+        console.log(roomData); 
+      });
     }
     else{
       const roomData=rooms.filter((roomD)=>roomD.roomId===room)
       console.log("kuchii",roomData[0]?.users)
       if(roomData){
         console.log("koiiii");
-        roomData[0]?.users.push(users) 
+        roomData[0]?.users.push(socketId) 
          console.log(roomData[0]?.users)
+         roomData[0]?.users.forEach((element)=>{
+          io.to(element).emit("userJoined",roomData)
+         })
       }
     }
   })
@@ -40,13 +49,23 @@ io.on("connection", (socket) => {
       io.emit("get-users", activeUsers);
     });
     
-    socket.on("addMatch",(roomId,type,fee)=>{
-      activeUsers.forEach(element => {
-        console.log(element.socketId);
-        io.to(element.socketId).emit("added-match-data", roomId,type,fee)
-        console.log(roomId,type,fee);
+    
+
+  
+    
+
+     socket.on("Matchcount",(roomId,socketId)=>{
+      const roomData=rooms.filter((roomD)=>roomD.roomId===roomId)
+        if(roomData){
+          io.to(socketId).emit("match-count-data", roomData)
+        }else{
+          console.log("No room found")
+        }
+       
+     
       });
-     })
+                                             
+     
       socket.on("leaveGame",(roomId,socketId)=>{
         const roomData=  rooms.filter((o)=>  o.roomId===roomId)
         const index = roomData.users.indexOf(socketId);
@@ -55,18 +74,15 @@ io.on("connection", (socket) => {
         }
          io.to(socketId).emit("Left from game")
       })
-       socket.on("UserJoinData",(roomId,usersArray,type,fee)=>{
-        activeUsers.forEach(element => {
-          io.to(element.socketId).emit("added-UserJoinData", roomId ,usersArray,type,fee)
-         
-        });
-       })
-
-     socket.on("userJoinInsideRoom",(roomId,usersArray)=>{
-      
-     })
-    socket.on("StartGame",(room,users,draw,type)=>{
-      console.log("Game Started...",draw, users,room);
+       socket.on("UserJoinData",(roomId)=>{
+        const roomData=  rooms.filter((o)=>  o.roomId===roomId)
+        roomData[0]?.users.forEach((element)=>{
+          io.to(element).emit("userJoined",roomData[0]?.users)
+         })
+       }) 
+       
+    socket.on("StartGame",(room,draw)=>{
+      console.log("Game Started...",draw, room);
       console.log(rooms)
     const roomData=  rooms.filter((o)=>  o.roomId===room)
     // console.log("koii",roomData);
@@ -90,7 +106,33 @@ io.on("connection", (socket) => {
 
      }
     })
- 
+   socket.on("getRoomData",(socketId,roomId,fee,type)=>{
+     if(roomId!==null){
+      roomData=rooms.filter((o)=>{
+        o.roomId===roomId
+        
+      })
+
+      io.to(socketId).emit("getDataById",roomData)
+     }
+     else if(fee!==null ){
+      roomData=rooms.filter((o)=>{
+        o.fee===fee  
+        
+      })
+
+      io.to(socketId).emit("getDataByFee",roomData)
+
+     }else if(type!==null){
+      roomData=rooms.filter((o)=>{
+        o.type===type
+        
+      })
+
+      io.to(socketId).emit("getDataByType",roomData)
+     }
+
+   })
 
     socket.on("claim",(room,username,claimType)=>{
       console.log(room,username,claimType);
@@ -102,7 +144,7 @@ io.on("connection", (socket) => {
                 io.to(element).emit("claimed", username,claimType);
                 console.log("claimed to ",element)
             }) 
-            
+             
     
     
      }else{
@@ -119,7 +161,7 @@ io.on("connection", (socket) => {
          console.log(element.socketId);
          io.to(element.socketId).emit("finished-match-data", room)
          console.log(room);
-       });
+       }); 
  
     })
 
