@@ -67,12 +67,19 @@ io.on("connection", (socket) => {
                                              
      
       socket.on("leaveGame",(roomId,socketId)=>{
+        console.log(roomId,socketId);
         const roomData=  rooms.filter((o)=>  o.roomId===roomId)
-        const index = roomData.users.indexOf(socketId);
+        console.log(roomData);
+        const index = roomData[0]?.users.indexOf(socketId);
         if (index > -1) { // only splice array when item is found
-          roomData.users.splice(index, 1); // 2nd parameter means remove one item only
+          roomData[0]?.users.splice(index, 1); // 2nd parameter means remove one item only
+          roomData[0]?.users.forEach((element)=>{
+
+            io.to(element).emit("left-user",roomData[0]?.users)
+           })
         }
-         io.to(socketId).emit("Left from game")
+   
+      
       })
        socket.on("UserJoinData",(roomId)=>{
         const roomData=  rooms.filter((o)=>  o.roomId===roomId)
@@ -106,34 +113,26 @@ io.on("connection", (socket) => {
 
      }
     })
-   socket.on("getRoomData",(socketId,roomId,fee,type)=>{
-     if(roomId!==null){
-      roomData=rooms.filter((o)=>{
-        o.roomId===roomId
-        
-      })
-
-      io.to(socketId).emit("getDataById",roomData)
-     }
-     else if(fee!==null ){
-      roomData=rooms.filter((o)=>{
-        o.fee===fee  
-        
-      })
-
-      io.to(socketId).emit("getDataByFee",roomData)
-
-     }else if(type!==null){
-      roomData=rooms.filter((o)=>{
-        o.type===type
-        
-      })
-
-      io.to(socketId).emit("getDataByType",roomData)
-     }
-
-   })
-
+    socket.on("getRoomData",(socketId,fee,type)=>{
+     
+      if(fee!==0 ){
+       roomData=rooms.filter((o)=>{
+         o.fee===fee  
+         
+       })
+ 
+       io.to(socketId).emit("getDataByFee",roomData)
+ 
+      }else if(type!==0){
+       roomData=rooms.filter((o)=>{
+         o.type===type
+         
+       })
+ 
+       io.to(socketId).emit("getDataByType",roomData)
+      }
+ 
+    })
     socket.on("claim",(room,username,claimType)=>{
       console.log(room,username,claimType);
     const roomData=  rooms.filter((o)=>  o.roomId===room)      
