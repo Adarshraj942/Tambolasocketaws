@@ -38,6 +38,33 @@ io.on("connection", (socket) => {
       }
     }
   })
+
+  socket.on("joinPrivate",(data)=>{
+    const {fee,room,socketId,type}=data
+    console.log(room,users)
+    if (!rooms.some((roomD) => roomD.roomId === room)) {
+      console.log("user joined & It's new Room");
+      const roomData={ roomId: room,  users:[socketId],type:type, fee:fee} 
+      rooms.push(roomData);
+      console.log("New room Connected", rooms);
+     
+        io.to(socketId).emit("added-match-data-Private", roomData)
+        
+   
+    } 
+    else{
+      const roomData=rooms.filter((roomD)=>roomD.roomId===room)
+      console.log("kuchii",roomData[0]?.users)
+      if(roomData){
+        console.log("koiiii");
+        roomData[0]?.users.push(socketId) 
+         console.log(roomData[0]?.users)
+         roomData[0]?.users.forEach((element)=>{
+          io.to(element).emit("userJoined-Private",roomData)
+         })
+      }
+    }
+  })
     // add new User
     socket.on("new-user-add", (newUserId) => {
       // if user is not added previously
