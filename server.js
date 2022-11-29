@@ -41,7 +41,7 @@ io.on("connection", (socket) => {
 
   socket.on("joinPrivate",(data)=>{
     const {fee,room,socketId,type}=data
-    console.log(room,users)
+   
     if (!rooms.some((roomD) => roomD.roomId === room)) {
       console.log("user joined & It's new Room");
       const roomData={ roomId: room,  users:[socketId],type:type, fee:fee} 
