@@ -37,14 +37,14 @@ io.on("connection", (socket) => {
          })
       }
     }
-  })
+  }) 
 
   socket.on("joinPrivate",(data)=>{
-    const {fee,room,socketId,type}=data
+    const {fee,room,socketId,type,username}=data
    
     if (!rooms.some((roomD) => roomD.roomId === room)) {
       console.log("user joined & It's new Room");
-      const roomData={ roomId: room,  users:[socketId],type:type, fee:fee} 
+      const roomData={ roomId: room,  users:[socketId],type:type, fee:fee,usernames:[username]} 
       rooms.push(roomData);
       console.log("New room Connected", rooms);
      
@@ -58,6 +58,7 @@ io.on("connection", (socket) => {
       if(roomData){
         console.log("koiiii");
         roomData[0]?.users.push(socketId) 
+        roomData[0]?.usernames.push(username)
          console.log(roomData[0]?.users)
          roomData[0]?.users.forEach((element)=>{
           io.to(element).emit("userJoined-Private",roomData)
@@ -88,8 +89,6 @@ io.on("connection", (socket) => {
         }else{
           console.log("No room found")
         }
-       
-     
       });
                                              
      
@@ -140,32 +139,22 @@ io.on("connection", (socket) => {
 
      }
     })
-    socket.on("getRoomData",(socketId,fee,type)=>{
+    socket.on("getRoomData",(socketId,type)=>{
      
-      if(fee!==0 ){
-       roomData=rooms.filter((o)=>{
-         o.fee===fee  
-         
-       })
- 
-       io.to(socketId).emit("getDataByFee",roomData)
- 
-      }else if(type!==0){
-       roomData=rooms.filter((o)=>{
-         o.type===type
-         
-       })
- 
-       io.to(socketId).emit("getDataByType",roomData)
-      }
- 
-    })
+     const roomData =rooms.filter((o)=>{
+        o.type===type 
+        
+      })
+
+      io.to(socketId).emit("getDataByFee", roomData[0]?.users)
+    
+    }) 
     socket.on("claim",(room,username,claimType)=>{
       console.log(room,username,claimType);
     const roomData=  rooms.filter((o)=>  o.roomId===room)      
     
      if(roomData){
- 
+  
            roomData[0]?.users.forEach((element)=>{
                 io.to(element).emit("claimed", username,claimType);
                 console.log("claimed to ",element)
