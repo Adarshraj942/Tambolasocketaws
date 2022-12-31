@@ -13,10 +13,10 @@ io.on("connection", (socket) => {
   //join room
   
   socket.on("join",(data)=>{
-    const {fee,room,socketId,type}=data
+    const {fee,room,socketId,type,username}=data
     if (!rooms.some((roomD) => roomD.roomId === room)) {
       console.log("user joined & It's new Room");
-      const roomData={ roomId: room,  users:[socketId],type:type,fee:fee} 
+      const roomData={ roomId: room,  users:[socketId],type:type,fee:fee,usernames:[username]} 
       rooms.push(roomData);
       console.log("New room Connected", rooms);
       activeUsers.forEach(element => {
@@ -31,6 +31,7 @@ io.on("connection", (socket) => {
       if(roomData){
         console.log("koiiii");
         roomData[0]?.users.push(socketId) 
+        roomData[0]?.usernames.push(username) 
          console.log(roomData[0]?.users)
          roomData[0]?.users.forEach((element)=>{
           io.to(element).emit("userJoined",roomData)
