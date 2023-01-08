@@ -11,7 +11,6 @@ let rooms=[]
 io.on("connection", (socket) => {
   console.log("connected");
   //join room
-  
   socket.on("join",(data)=>{
     const {fee,room,socketId,type,username}=data
     if (!rooms.some((roomD) => roomD.roomId === room)) {
@@ -22,6 +21,7 @@ io.on("connection", (socket) => {
       activeUsers.forEach(element => {
         console.log(element.socketId);
         io.to(element.socketId).emit("added-match-data", roomData)
+     
         console.log(roomData); 
       });
     }
@@ -33,12 +33,21 @@ io.on("connection", (socket) => {
         roomData[0]?.users.push(socketId) 
         roomData[0]?.usernames.push(username) 
          console.log(roomData[0]?.users)
-         roomData[0]?.users.forEach((element)=>{
-          io.to(element).emit("userJoined",roomData)
-         })
-      }
-    }
-  }) 
+         var tan = {
+          [room]: roomData[0]?.users,
+          usernames:roomData[0]?.usernames,
+          Fee:roomData[0]?.fee,Type:roomData[0]?.type
+        }
+         activeUsers.forEach(element => {
+          console.log(element.socketId);
+          io.to(element.socketId).emit("userJoined",tan)
+       
+          console.log(roomData); 
+        });
+       
+      }
+    }
+  })
 
   socket.on("joinPrivate",(data)=>{
     const {fee,room,socketId,type,username}=data
@@ -78,21 +87,20 @@ io.on("connection", (socket) => {
       io.emit("get-users", activeUsers);
     });
     
-    
-
-  
-    
-
-     socket.on("Matchcount",(roomId,socketId)=>{
-      const roomData=rooms.filter((roomD)=>roomD.roomId===roomId)
-        if(roomData){
-          io.to(socketId).emit("match-count-data", roomData)
-        }else{
-          console.log("No room found")
-        }
-      });
+    socket.on("Matchcount",(socketId,roomId)=>{
+      console.log(socketId ,roomId);
+ 
+      const roomData=  rooms.filter((o)=>  o.roomId===roomId)
+      
+      console.log(roomData);
+      var tan = {
+        [roomId]: roomData[0]?.users,
+      }
+      io.to(socketId).emit("match-count-data",tan)
+});
                                              
      
+
       socket.on("leaveGame",(roomId,socketId)=>{
         console.log(roomId,socketId);
         const roomData=  rooms.filter((o)=>  o.roomId===roomId)
@@ -141,15 +149,14 @@ io.on("connection", (socket) => {
      }
     })
     socket.on("getRoomData",(socketId,type)=>{
-     
-     const roomData =rooms.filter((o)=>{
-        o.type===type 
-        
-      })
-
-      io.to(socketId).emit("getDataByFee", roomData[0]?.users)
-    
-    }) 
+      console.log(socketId ,type);
+      console.log(rooms);
+      const roomData=  rooms.filter((o)=>  o.type===type)
+  
+console.log("data ",roomData);
+      io.to(socketId).emit("getDataByType", roomData)
+    
+    })
     socket.on("claim",(room,username,claimType)=>{
       console.log(room,username,claimType);
     const roomData=  rooms.filter((o)=>  o.roomId===room)      
