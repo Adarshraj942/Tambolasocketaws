@@ -111,7 +111,23 @@ io.on("connection", (socket) => {
           roomData[0]?.users.forEach((element)=>{
 
             io.to(element).emit("left-user",roomData[0]?.users)
-           })
+           
+
+            
+          });
+          
+          var tan = {
+            [room]: roomData[0]?.users,
+            usernames:roomData[0]?.usernames,
+            Fee:roomData[0]?.fee,Type:roomData[0]?.type
+          }
+           activeUsers.forEach(element => {
+            console.log(element.socketId);
+            io.to(element.socketId).emit("userJoined",tan)
+         
+            console.log(roomData); 
+          });
+          
         }
    
       
